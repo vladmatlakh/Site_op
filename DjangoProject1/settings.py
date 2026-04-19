@@ -25,7 +25,18 @@ SECRET_KEY = 'django-insecure-vymesb(3r+f(%&9722+-5^px80xvtw@ycjr52ygib(*sh8lfs6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'arming-payphone-finer.ngrok-free.dev',
+    '.ngrok-free.dev',
+    '*',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.ngrok-free.dev',
+    'https://arming-payphone-finer.ngrok-free.dev',
+]
 
 
 # Application definition

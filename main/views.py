@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .models import Game, Category  # Імпортуємо твої моделі
 
 
@@ -28,7 +28,15 @@ def catalog(request):
 
 def category_detail(request, category_id):
     # Фільтрація ігор за категорією
-    games = Game.objects.filter(category_id=category_id)
+    current_category = get_object_or_404(Category, id=category_id)
+    games = Game.objects.filter(category=current_category)
     categories = Category.objects.all()
-    context = {'games': games, 'categories': categories}
+    context = {'games': games, 'categories': categories, 'current_category': current_category}
     return render(request, 'main/index.html', context)
+
+
+def game_detail(request, game_id):
+    game = get_object_or_404(Game, id=game_id)
+    categories = Category.objects.all()
+    context = {'game': game, 'categories': categories}
+    return render(request, 'main/game_detail.html', context)

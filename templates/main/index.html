@@ -30,7 +30,12 @@
                 
                 <div class="mt-auto">
                     <p class="fs-4 fw-bold text-info mb-2">{{ game.price }} грн</p>
-                    <button class="btn btn-info w-100 fw-bold" type="button" disabled title="Тимчасово неактивно">Купити</button>
+                    <form action="{% url 'add_to_cart' game.id %}" method="post" class="d-grid">
+                        {% csrf_token %}
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="next" value="catalog">
+                        <button class="btn btn-info w-100 fw-bold" type="submit">Додати до кошика</button>
+                    </form>
                 </div>
             </div>
         </div>

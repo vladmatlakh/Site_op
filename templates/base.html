@@ -23,7 +23,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
                         <li class="nav-item">
                             <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}" href="{% url 'home' %}">Головна</a>
                         </li>
@@ -55,11 +55,35 @@
                         <li class="nav-item">
                             <a class="nav-link{% if request.resolver_match.url_name == 'contact' %} active{% endif %}" href="{% url 'contact' %}">Контакти</a>
                         </li>
+                        <li class="nav-item ms-lg-3">
+                            <a class="btn btn-sm btn-outline-info position-relative" href="{% url 'cart' %}">
+                                🛒 Кошик
+                                {% if cart_count and cart_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark">{{ cart_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
+
+    <!-- Flash messages -->
+    <div class="container mt-3" aria-live="polite" aria-atomic="true">
+        {% if messages %}
+        <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+            {% for message in messages %}
+            <div class="toast show text-bg-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}secondary{% endif %} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">{{ message }}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
 
     <!-- Main content -->
     <main class="container my-5 flex-grow-1">
@@ -82,8 +106,19 @@
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="text-uppercase text-white">Ми в соцмережах</h5>
-                    <p>Steam | Discord | Twitch</p>
+                    <h5 class="text-uppercase text-white">Підписка на новини</h5>
+                    <form action="{% url 'subscribe' %}" method="post" class="row g-2">
+                        {% csrf_token %}
+                        <div class="col-12">
+                            <input type="email" name="email" placeholder="Ваш email" required class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <input type="text" name="name" placeholder="Ваше ім'я (необов'язково)" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-12 col-sm-6 d-grid">
+                            <button class="btn btn-sm btn-info" type="submit">Підписатися</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

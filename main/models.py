@@ -29,3 +29,26 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Відгук від {self.author} на {self.game.title}"
+
+class Rating(models.Model):
+    SCORE_CHOICES = [(i, str(i)) for i in range(1, 6)]
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="ratings")
+    score = models.IntegerField(choices=SCORE_CHOICES)
+    # Використовуємо session_key для ідентифікації оцінки користувача (анонімно)
+    session_key = models.CharField(max_length=40, blank=True, null=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (('game', 'session_key'),)
+
+    def __str__(self):
+        return f"Оцінка {self.score} для {self.game.title}"
+
+class NewsletterSubscription(models.Model):
+    email = models.EmailField(unique=True, verbose_name="Email")
+    name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Ім'я")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.email

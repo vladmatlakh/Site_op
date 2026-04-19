@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Game, Review
+from .models import Category, Game, Review, Rating, NewsletterSubscription
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -15,3 +15,14 @@ class GameAdmin(admin.ModelAdmin):
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('game', 'author', 'created_at', 'updated_at')
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('game', 'score', 'session_key', 'created_at')
+    list_filter = ('score',)
+    search_fields = ('game__title', 'session_key')
+
+@admin.register(NewsletterSubscription)
+class NewsletterSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('email', 'name', 'created_at')
+    search_fields = ('email', 'name')

@@ -1,0 +1,48 @@
+/* Основні налаштування фону */
+body {
+    background-color: #121212; /* Дуже темний сірий, майже чорний */
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Стилізація карток ігор */
+.game-card {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Ефект при наведенні на гру */
+.game-card:hover {
+    transform: translateY(-10px); /* Картка ніби піднімається */
+    box-shadow: 0 10px 20px rgba(0, 255, 255, 0.2); /* Блакитне сяйво */
+    border-color: #0dcaf0; /* Колір "info" з Bootstrap */
+}
+
+/* Стилізація картинок у картках */
+.game-card img {
+    height: 200px;
+    object-fit: cover; /* Щоб картинки не розтягувались, а обрізались під розмір */
+}
+
+/* Колір посилань у футері */
+footer a:hover {
+    color: #0dcaf0 !important;
+    text-decoration: underline !important;
+}
+
+/* Кастомний скролбар (для краси) */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #121212;
+}
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #0dcaf0;
+}

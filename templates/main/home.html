@@ -1,29 +1,20 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Головна сторінка</title>
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f4; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        ul { list-style: none; padding: 0; }
-        li { margin: 10px 0; }
-        a { text-decoration: none; color: #007bff; font-weight: bold; font-size: 1.2rem; }
-        a:hover { color: #0056b3; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Вітаємо на головній!</h1>
-        <p>Виберіть сторінку для переходу:</p>
+{% extends "base.html" %}
 
-        <ul>
-            <!-- Посилання мають співпадати з іменами (name) у urls.py -->
-            <li><a href="{% url 'about' %}">📂 Про нас</a></li>
-            <li><a href="{% url 'contact' %}">📞 Контакти</a></li>
-        </ul>
+{% block title %}Головна — GameStore{% endblock %}
+
+{% block content %}
+<h1 class="text-info mb-4 text-uppercase">Вітаємо на GameStore!</h1>
+<p class="text-secondary">Оберіть розділ для переходу або відкрийте каталог ігор.</p>
+
+<div class="row g-3">
+    <div class="col-12 col-md-4">
+        <a class="btn btn-info w-100" href="{% url 'catalog' %}">Каталог ігор</a>
     </div>
-</body>
-</html>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'about' %}">Про нас</a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'contact' %}">Контакти</a>
+    </div>
+</div>
+{% endblock %}

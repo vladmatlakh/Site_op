@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .back-link { display: inline-block; margin-top: 20px; color: blue; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Цей заголовок і текст будуть змінюватися через context у views.py -->
+        <h1>{{ title }}</h1>
+        <div>
+            {{ content }}
+        </div>
+
+        <hr>
+
+        <!-- Посилання на головну сторінку -->
+        <a href="{% url 'home' %}" class="back-link">← Повернутися на головну</a>
+    </div>
+</body>
+</html>

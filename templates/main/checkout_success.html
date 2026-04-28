@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Замовлення оформлено — GameStore{% endblock %}
+
+{% block content %}
+<h1 class="text-info mb-4 text-uppercase">Дякуємо за покупку!</h1>
+<div class="card bg-dark border-secondary">
+  <div class="card-body">
+    {% if order %}
+      <p class="mb-2">Ми надішлемо ключі на email: <span class="text-info fw-bold">{{ order.email }}</span>.</p>
+      <p class="mb-2">Сума до сплати: <span class="text-info fw-bold">{{ order.total }} грн</span>.</p>
+      <p class="mb-4">Кількість товарів: <span class="text-info fw-bold">{{ order.count }}</span>.</p>
+    {% else %}
+      <p class="mb-4">Ваше замовлення підтверджено.</p>
+    {% endif %}
+    {% if order_obj %}
+      <p class="text-secondary">Номер вашого замовлення: <span class="text-info">#{{ order_obj.id }}</span></p>
+    {% endif %}
+    <a href="{% url 'catalog' %}" class="btn btn-info">Повернутися до каталогу</a>
+  </div>
+</div>
+{% endblock %}

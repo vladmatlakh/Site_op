@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Кошик — GameStore{% endblock %}
+
+{% block content %}
+<h1 class="text-info mb-4 text-uppercase">Кошик</h1>
+
+{% if items and items|length > 0 %}
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+      <div class="list-group">
+        {% for it in items %}
+        <div class="list-group-item bg-dark text-white border-secondary">
+          <div class="row align-items-center g-2">
+            <div class="col-3 col-md-2">
+              <a href="{% url 'game_detail' it.game.id %}">
+                {% if it.game.image %}
+                <img src="{{ it.game.image.url }}" class="img-fluid rounded" alt="{{ it.game.title }}">
+                {% else %}
+                <img src="https://via.placeholder.com/120x80?text=No+Image" class="img-fluid rounded" alt="No image">
+                {% endif %}
+              </a>
+            </div>
+            <div class="col-9 col-md-4">
+              <a class="text-white text-decoration-none" href="{% url 'game_detail' it.game.id %}"><strong>{{ it.game.title }}</strong></a>
+              <div class="text-secondary small">{{ it.game.category.name }}</div>
+            </div>
+            <div class="col-6 col-md-3 d-flex align-items-center">
+              <form action="{% url 'update_cart' it.game.id %}" method="post" class="d-flex align-items-center gap-2">
+                {% csrf_token %}
+                <input type="number" min="0" name="quantity" value="{{ it.qty }}" class="form-control form-control-sm bg-dark text-white border-secondary" style="width: 90px;">
+                <button class="btn btn-sm btn-outline-info" type="submit">Оновити</button>
+              </form>
+            </div>
+            <div class="col-3 col-md-2 text-nowrap">
+              <span class="fw-bold text-info">{{ it.line_total }} грн</span>
+            </div>
+            <div class="col-3 col-md-1 text-end">
+              <a href="{% url 'remove_from_cart' it.game.id %}" class="btn btn-sm btn-outline-danger" title="Видалити">✕</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+      <div class="card bg-dark border-secondary">
+        <div class="card-body">
+          <h5 class="card-title">Разом</h5>
+          <p class="fs-4 fw-bold text-info">{{ total }} грн</p>
+          <a class="btn btn-info w-100" href="{% url 'checkout' %}">Оформити замовлення</a>
+          <a href="{% url 'catalog' %}" class="btn btn-outline-info w-100 mt-2">Продовжити покупки</a>
+        </div>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-secondary">Кошик порожній. Перейдіть до <a href="{% url 'catalog' %}">каталогу</a> і додайте товари.</div>
+{% endif %}
+{% endblock %}

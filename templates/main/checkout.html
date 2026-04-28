@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Оформлення замовлення — GameStore{% endblock %}
+
+{% block content %}
+<h1 class="text-info mb-4 text-uppercase">Оформлення замовлення</h1>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Контактні дані та оплата</h5>
+        <form action="" method="post" class="row g-3">
+          {% csrf_token %}
+          <div class="col-12">
+            <label for="name" class="form-label text-white">ПІБ</label>
+            <input type="text" id="name" name="name" class="form-control bg-dark text-white border-secondary" placeholder="Ваше ім'я та прізвище" required>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="email" class="form-label text-white">Email</label>
+            <input type="email" id="email" name="email" class="form-control bg-dark text-white border-secondary" placeholder="you@example.com" required>
+          </div>
+          <div class="col-12 col-md-6">
+            <label for="phone" class="form-label text-white">Телефон</label>
+            <input type="tel" id="phone" name="phone" class="form-control bg-dark text-white border-secondary" placeholder="+380XXXXXXXXX" required>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label text-white">Спосіб оплати</label>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_card" value="card" checked>
+              <label class="form-check-label text-white" for="pm_card">Банківська картка</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="payment_method" id="pm_paypal" value="paypal">
+              <label class="form-check-label text-white" for="pm_paypal">PayPal (імітація)</label>
+            </div>
+          </div>
+
+          <div id="cardFields" class="col-12">
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="card_number" class="form-label text-white">Номер картки</label>
+                <input type="text" id="card_number" name="card_number" class="form-control bg-dark text-white border-secondary" placeholder="1111 2222 3333 4444">
+              </div>
+              <div class="col-6 col-md-4">
+                <label for="card_exp" class="form-label text-white">Термін дії</label>
+                <input type="text" id="card_exp" name="card_exp" class="form-control bg-dark text-white border-secondary" placeholder="MM/YY">
+              </div>
+              <div class="col-6 col-md-4">
+                <label for="card_cvv" class="form-label text-white">CVV</label>
+                <input type="password" id="card_cvv" name="card_cvv" class="form-control bg-dark text-white border-secondary" placeholder="***">
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 d-grid">
+            <button class="btn btn-info btn-lg" type="submit">Підтвердити та оплатити</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-5">
+    <div class="card bg-dark border-secondary">
+      <div class="card-body">
+        <h5 class="card-title">Ваше замовлення</h5>
+        {% for it in items %}
+          <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-secondary">
+            <div>
+              <div class="fw-bold">{{ it.game.title }}</div>
+              <div class="text-secondary small">Кількість: {{ it.qty }}</div>
+            </div>
+            <div class="text-info fw-bold">{{ it.line_total }} грн</div>
+          </div>
+        {% endfor %}
+        <div class="d-flex justify-content-between align-items-center py-2">
+          <div class="fw-bold">Разом</div>
+          <div class="text-info fw-bold fs-5">{{ total }} грн</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+

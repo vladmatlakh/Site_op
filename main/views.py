@@ -1,7 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Avg, Count
-from .models import Game, Category, Rating, NewsletterSubscription  # Імпортуємо моделі
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+from .models import Game, Category, Rating, NewsletterSubscription, Order, OrderItem, PasswordResetCode  # Імпортуємо моделі
 
 
 def _get_cart(request):
@@ -40,6 +47,16 @@ def about(request):
 def contact(request):
     context = _base_context(request)
     return render(request, 'main/contact.html', context)
+
+
+def how_to_buy(request):
+    context = _base_context(request)
+    return render(request, 'main/how_to_buy.html', context)
+
+
+def key_activation(request):
+    context = _base_context(request)
+    return render(request, 'main/key_activation.html', context)
 
 
 def catalog(request):
@@ -169,6 +186,99 @@ def subscribe(request):
     return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 
+# -------- АВТЕНТИФІКАЦІЯ --------
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    form = AuthenticationForm(request, data=request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.get_user()
+        auth_login(request, user)
+        messages.success(request, 'Вітаємо! Ви увійшли в акаунт.')
+        return redirect(request.GET.get('next') or 'home')
+    context = _base_context(request)
+    context.update({'form': form})
+    return render(request, 'main/login.html', context)
+
+
+def logout_view(request):
+    if request.user.is_authenticated:
+        auth_logout(request)
+        messages.info(request, 'Ви вийшли з акаунта.')
+    return redirect('home')
+
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    form = UserCreationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        auth_login(request, user)
+        messages.success(request, 'Реєстрація успішна!')
+        return redirect('home')
+    context = _base_context(request)
+    context.update({'form': form})
+    return render(request, 'main/register.html', context)
+
+
+@login_required
+def profile(request):
+    if request.user.is_staff:
+        orders = Order.objects.select_related('user').prefetch_related('items__game').order_by('-created_at')
+    else:
+        orders = Order.objects.filter(user=request.user).prefetch_related('items__game').order_by('-created_at')
+    context = _base_context(request)
+    context.update({'orders': orders})
+    return render(request, 'main/profile.html', context)
+
+
+def password_reset_request(request):
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, 'Користувача з таким email не знайдено.')
+            return redirect('password_reset_request')
+        code_obj = PasswordResetCode.create_for_user(user)
+        subject = 'Відновлення паролю — GameStore'
+        message = f"Ваш тимчасовий код відновлення: {code_obj.code}\nДіє до: {code_obj.expires_at.strftime('%Y-%m-%d %H:%M')} UTC"
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        messages.success(request, 'Код відновлення надіслано на вашу пошту.')
+        return redirect('password_reset_confirm')
+    context = _base_context(request)
+    return render(request, 'main/password_reset_request.html', context)
+
+
+def password_reset_confirm(request):
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip()
+        code = (request.POST.get('code') or '').strip().upper()
+        new_password = request.POST.get('new_password') or ''
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, 'Користувача з таким email не знайдено.')
+            return redirect('password_reset_confirm')
+        code_obj = PasswordResetCode.objects.filter(user=user, code=code, is_used=False).order_by('-created_at').first()
+        if not code_obj or not code_obj.is_valid():
+            messages.error(request, 'Невірний або прострочений код.')
+            return redirect('password_reset_confirm')
+        if len(new_password) < 8:
+            messages.error(request, 'Пароль має містити щонайменше 8 символів.')
+            return redirect('password_reset_confirm')
+        user.set_password(new_password)
+        user.save()
+        code_obj.is_used = True
+        code_obj.save(update_fields=['is_used'])
+        messages.success(request, 'Пароль успішно змінено. Увійдіть з новим паролем.')
+        return redirect('login')
+    context = _base_context(request)
+    return render(request, 'main/password_reset_confirm.html', context)
+
+
 def buy_now(request, game_id):
     """Почати швидку покупку одного товару і перейти на оформлення замовлення."""
     game = get_object_or_404(Game, id=game_id)
@@ -241,6 +351,23 @@ def checkout(request):
         if not errors:
             # Імітація успішної оплати
             items, total = _collect_checkout_items(request)
+
+            # Створюємо замовлення
+            order = Order.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                name=name,
+                email=email,
+                phone=phone,
+                total=total,
+            )
+            for it in items:
+                OrderItem.objects.create(
+                    order=order,
+                    game=it['game'],
+                    quantity=it['qty'],
+                    price=it['game'].price,
+                )
+
             # очистимо куплені позиції з кошика
             cart = _get_cart(request)
             for it in items:
@@ -253,6 +380,7 @@ def checkout(request):
                 del request.session['checkout_items']
                 request.session.modified = True
             # Перенаправимо на сторінку успіху
+            request.session['last_order_id'] = order.id
             request.session['last_order'] = {
                 'name': name, 'email': email, 'phone': phone,
                 'total': float(total), 'count': sum([it['qty'] for it in items])
@@ -276,6 +404,13 @@ def checkout(request):
 def checkout_success(request):
     """Сторінка підтвердження замовлення після успішної оплати (імітація)."""
     last_order = request.session.pop('last_order', None)
+    order_obj = None
+    order_id = request.session.pop('last_order_id', None)
+    if order_id:
+        try:
+            order_obj = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            order_obj = None
     context = _base_context(request)
-    context.update({'order': last_order})
+    context.update({'order': last_order, 'order_obj': order_obj})
     return render(request, 'main/checkout_success.html', context)

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Кабінет — GameStore{% endblock %}
+{% block content %}
+<h1 class="text-info text-uppercase mb-4">Особистий кабінет</h1>
+<p class="text-secondary">Вітаємо, {{ request.user.username }}!</p>
+
+<h3 class="mt-4">Ваші замовлення</h3>
+{% if orders %}
+  <div class="list-group">
+    {% for order in orders %}
+      <div class="list-group-item bg-dark text-white border-secondary mb-3">
+        <div class="d-flex justify-content-between">
+          <div>
+            <div class="fw-bold">Замовлення #{{ order.id }} від {{ order.created_at|date:"Y-m-d H:i" }}</div>
+            <div class="text-secondary">Сума: {{ order.total }} грн</div>
+            {% if order.user and request.user.is_staff %}
+              <div class="text-secondary">Користувач: {{ order.user.username }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <ul class="mt-2">
+          {% for it in order.items.all %}
+            <li class="text-secondary">{{ it.game.title }} × {{ it.quantity }} — {{ it.price }} грн</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-secondary">Замовлень поки немає.</p>
+{% endif %}
+{% endblock %}

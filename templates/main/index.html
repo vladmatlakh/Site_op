@@ -11,6 +11,20 @@
     {% endif %}
 </h1>
 
+{% if not current_category %}
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'catalog' %}">Каталог ігор</a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'about' %}">Про нас</a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'contact' %}">Контакти</a>
+    </div>
+</div>
+{% endif %}
+
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
     {% for game in games %}
     <div class="col">

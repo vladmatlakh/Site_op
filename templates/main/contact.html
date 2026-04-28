@@ -4,5 +4,18 @@
 
 {% block content %}
 <h1 class="text-info mb-4 text-uppercase">Контакти</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'catalog' %}">Каталог ігор</a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'about' %}">Про нас</a>
+    </div>
+    <div class="col-12 col-md-4">
+        <a class="btn btn-outline-info w-100" href="{% url 'contact' %}">Контакти</a>
+    </div>
+</div>
+
 <p class="text-secondary">Маєте питання? Напишіть нам на email support@gamestore.example або у наш Discord.</p>
 {% endblock %}

@@ -141,6 +141,11 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
-# Email backend (console for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@gamestore.local'
+# Email backend for Gmail
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'vlad.matlakh1@gmail.com'  # Замініть на ваш Gmail
+EMAIL_HOST_PASSWORD = 'dkwn jzry ffws puto'  # Не звичайний пароль, а App Password!
+DEFAULT_FROM_EMAIL = 'vlad.matlakh1@gmail.com'

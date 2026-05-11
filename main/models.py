@@ -80,6 +80,51 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.game.title} x{self.quantity}"
 
+class GameKeyManager(models.Manager):
+    def get_available_keys(self, game, quantity):
+        """Отримати доступні ключі для гри"""
+        return self.filter(game=game, is_sold=False)[:quantity]
+
+    def assign_keys_to_order(self, order_item):
+        """Призначити ключі до замовлення"""
+        keys = self.get_available_keys(order_item.game, order_item.quantity)
+        assigned_keys = []
+        for key in keys:
+            key.mark_as_sold(order_item)
+            assigned_keys.append(key)
+        return assigned_keys
+
+class GameKey(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='keys', verbose_name='Гра')
+    code = models.CharField(max_length=200, unique=True, verbose_name='Код ключа')
+    is_sold = models.BooleanField(default=False, db_index=True, verbose_name='Продано')
+    order_item = models.ForeignKey('OrderItem', on_delete=models.SET_NULL, null=True, blank=True, related_name='keys', verbose_name='Позиція замовлення')
+    sold_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата продажу')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = GameKeyManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['game', 'is_sold']),
+        ]
+        verbose_name = 'Ключ гри'
+        verbose_name_plural = 'Ключі гри'
+
+    def mark_as_sold(self, order_item):
+        """Позначити ключ як проданий"""
+        self.is_sold = True
+        self.sold_at = timezone.now()
+        self.order_item = order_item
+        self.save()
+
+    def is_available(self):
+        """Перевірити, чи доступний ключ для продажу"""
+        return not self.is_sold and self.order_item is None
+
+    def __str__(self):
+        return f"{self.game.title} — {self.code}{' (продано)' if self.is_sold else ''}"
+
 class PasswordResetCode(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reset_codes')
     code = models.CharField(max_length=64, unique=True)
@@ -97,3 +142,4 @@ class PasswordResetCode(models.Model):
 
     def __str__(self):
         return f"Код відновлення для {self.user.username}: {self.code}"
+

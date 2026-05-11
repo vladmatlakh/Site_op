@@ -11,11 +11,26 @@
           {% if form.non_field_errors %}
             <div class="alert alert-danger">{{ form.non_field_errors }}</div>
           {% endif %}
-          {{ form.as_p }}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Логін</label>
+            {{ form.username }}
+            <div class="form-text text-secondary">Ваше ім'я користувача для входу.</div>
+            {% if form.username.errors %}
+              <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Пароль</label>
+            {{ form.password }}
+            <div class="form-text text-secondary">Ваш секретний пароль для входу.</div>
+            {% if form.password.errors %}
+              <div class="invalid-feedback d-block">{{ form.password.errors|striptags }}</div>
+            {% endif %}
+          </div>
           <div class="d-grid gap-2">
-            <button class="btn btn-info" type="submit">Увійти</button>
-            <a class="btn btn-outline-light" href="{% url 'register' %}">Створити акаунт</a>
-            <a class="btn btn-outline-secondary" href="{% url 'password_reset_request' %}">Забули пароль?</a>
+            <button class="btn btn-info" type="submit" title="Увійти до свого акаунта" aria-label="Увійти">Увійти</button>
+            <a class="btn btn-outline-light" href="{% url 'register' %}" title="Створити новий акаунт на GameStore" aria-label="Створити акаунт">Створити акаунт</a>
+            <a class="btn btn-outline-secondary" href="{% url 'password_reset_request' %}" title="Надіслати запит на відновлення паролю" aria-label="Забули пароль?">Забули пароль?</a>
           </div>
         </form>
       </div>

@@ -8,10 +8,40 @@
       <div class="card-body">
         <form method="post" novalidate>
           {% csrf_token %}
-          {{ form.as_p }}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Логін</label>
+            {{ form.username }}
+            <div class="form-text text-secondary">Вигадане ім'я користувача для входу. Можна використовувати літери, цифри та @/./+/-/_</div>
+            {% if form.username.errors %}
+              <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_password1" class="form-label">Пароль</label>
+            {{ form.password1 }}
+            <div class="form-text text-secondary">Мінімум 8 символів. Не використовуйте очевидні паролі.</div>
+            {% if form.password1.errors %}
+              <div class="invalid-feedback d-block">{{ form.password1.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="id_password2" class="form-label">Підтвердження паролю</label>
+            {{ form.password2 }}
+            <div class="form-text text-secondary">Повторіть пароль, щоб уникнути помилки.</div>
+            {% if form.password2.errors %}
+              <div class="invalid-feedback d-block">{{ form.password2.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
           <div class="d-grid gap-2">
-            <button class="btn btn-info" type="submit">Створити акаунт</button>
-            <a class="btn btn-outline-light" href="{% url 'login' %}">У мене вже є акаунт</a>
+            <button class="btn btn-info" type="submit" title="Створити акаунт у GameStore" aria-label="Створити акаунт">Створити акаунт</button>
+            <a class="btn btn-outline-light" href="{% url 'login' %}" title="Повернутися до сторінки входу" aria-label="У мене вже є акаунт">У мене вже є акаунт</a>
           </div>
         </form>
       </div>

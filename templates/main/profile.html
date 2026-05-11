@@ -20,7 +20,15 @@
         </div>
         <ul class="mt-2">
           {% for it in order.items.all %}
-            <li class="text-secondary">{{ it.game.title }} × {{ it.quantity }} — {{ it.price }} грн</li>
+            <li class="text-secondary">{{ it.game.title }} × {{ it.quantity }} — {{ it.price }} грн
+              {% if it.keys.all %}
+                <ul class="mt-2 small">
+                  {% for k in it.keys.all %}
+                    <li class="text-info">{{ k.code }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
           {% endfor %}
         </ul>
       </div>

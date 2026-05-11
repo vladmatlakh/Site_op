@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
-from .models import Game, Category, Rating, NewsletterSubscription, Order, OrderItem, PasswordResetCode  # Імпортуємо моделі
+from .models import Game, Category, Rating, NewsletterSubscription, Order, OrderItem, PasswordResetCode, GameKey  # Імпортуємо моделі
 
 
 def _get_cart(request):
@@ -192,6 +192,26 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     form = AuthenticationForm(request, data=request.POST or None)
+    # Додаємо підказки та описи для полів форми входу
+    try:
+        if 'username' in form.fields:
+            form.fields['username'].widget.attrs.update({
+                'placeholder': 'Логін',
+                'aria-label': 'Логін',
+                'autofocus': 'autofocus',
+                'autocomplete': 'username',
+                'class': 'form-control bg-dark text-white border-secondary',
+            })
+        if 'password' in form.fields:
+            form.fields['password'].widget.attrs.update({
+                'placeholder': 'Пароль',
+                'aria-label': 'Пароль',
+                'autocomplete': 'current-password',
+                'class': 'form-control bg-dark text-white border-secondary',
+            })
+    except Exception:
+        # У разі нестандартного видалення/зміни полів — ігноруємо, щоб не зламати сторінку
+        pass
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         auth_login(request, user)
@@ -213,6 +233,32 @@ def register(request):
     if request.user.is_authenticated:
         return redirect('home')
     form = UserCreationForm(request.POST or None)
+    # Додаємо підказки та описи для полів форми реєстрації
+    try:
+        if 'username' in form.fields:
+            form.fields['username'].widget.attrs.update({
+                'placeholder': "Логін",
+                'aria-label': "Логін",
+                'autocomplete': 'username',
+                'class': 'form-control bg-dark text-white border-secondary',
+            })
+        if 'password1' in form.fields:
+            form.fields['password1'].widget.attrs.update({
+                'placeholder': "Пароль",
+                'aria-label': "Пароль",
+                'autocomplete': 'new-password',
+                'class': 'form-control bg-dark text-white border-secondary',
+            })
+        if 'password2' in form.fields:
+            form.fields['password2'].widget.attrs.update({
+                'placeholder': "Підтвердження паролю",
+                'aria-label': "Підтвердження паролю",
+                'autocomplete': 'new-password',
+                'class': 'form-control bg-dark text-white border-secondary',
+            })
+    except Exception:
+        # Ігноруємо можливі нестандартні поля у формі
+        pass
     if request.method == 'POST' and form.is_valid():
         user = form.save()
         auth_login(request, user)
@@ -226,9 +272,9 @@ def register(request):
 @login_required
 def profile(request):
     if request.user.is_staff:
-        orders = Order.objects.select_related('user').prefetch_related('items__game').order_by('-created_at')
+        orders = Order.objects.select_related('user').prefetch_related('items__game', 'items__keys').order_by('-created_at')
     else:
-        orders = Order.objects.filter(user=request.user).prefetch_related('items__game').order_by('-created_at')
+        orders = Order.objects.filter(user=request.user).prefetch_related('items__game', 'items__keys').order_by('-created_at')
     context = _base_context(request)
     context.update({'orders': orders})
     return render(request, 'main/profile.html', context)
@@ -352,6 +398,17 @@ def checkout(request):
             # Імітація успішної оплати
             items, total = _collect_checkout_items(request)
 
+            # Перевірка наявності достатньої кількості ключів для кожної гри
+            shortage = []
+            for it in items:
+                available = GameKey.objects.filter(game=it['game'], is_sold=False).count()
+                if available < it['qty']:
+                    shortage.append((it['game'].title, it['qty'], available))
+            if shortage:
+                for title, need, have in shortage:
+                    messages.error(request, f"Недостатньо ключів для '{title}': потрібно {need}, доступно {have}.")
+                return redirect('cart')
+
             # Створюємо замовлення
             order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
@@ -360,13 +417,25 @@ def checkout(request):
                 phone=phone,
                 total=total,
             )
+            allocated_summary = []
             for it in items:
-                OrderItem.objects.create(
+                oi = OrderItem.objects.create(
                     order=order,
                     game=it['game'],
                     quantity=it['qty'],
                     price=it['game'].price,
                 )
+                # Виділяємо ключі для цієї позиції
+                keys_qs = GameKey.objects.filter(game=it['game'], is_sold=False).order_by('created_at')[:it['qty']]
+                codes = []
+                now = timezone.now()
+                for k in keys_qs:
+                    k.is_sold = True
+                    k.sold_at = now
+                    k.order_item = oi
+                    k.save(update_fields=['is_sold', 'sold_at', 'order_item'])
+                    codes.append(k.code)
+                allocated_summary.append({'game': it['game'].title, 'codes': codes})
 
             # очистимо куплені позиції з кошика
             cart = _get_cart(request)
@@ -385,6 +454,7 @@ def checkout(request):
                 'name': name, 'email': email, 'phone': phone,
                 'total': float(total), 'count': sum([it['qty'] for it in items])
             }
+            request.session['allocated_keys'] = allocated_summary
             return redirect('checkout_success')
         else:
             # Показати помилки
@@ -406,11 +476,12 @@ def checkout_success(request):
     last_order = request.session.pop('last_order', None)
     order_obj = None
     order_id = request.session.pop('last_order_id', None)
+    allocated_keys = request.session.pop('allocated_keys', None)
     if order_id:
         try:
             order_obj = Order.objects.get(id=order_id)
         except Order.DoesNotExist:
             order_obj = None
     context = _base_context(request)
-    context.update({'order': last_order, 'order_obj': order_obj})
+    context.update({'order': last_order, 'order_obj': order_obj, 'allocated_keys': allocated_keys})
     return render(request, 'main/checkout_success.html', context)

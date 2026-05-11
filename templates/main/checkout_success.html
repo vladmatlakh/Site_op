@@ -16,6 +16,29 @@
     {% if order_obj %}
       <p class="text-secondary">Номер вашого замовлення: <span class="text-info">#{{ order_obj.id }}</span></p>
     {% endif %}
+
+    {% if allocated_keys %}
+      <hr class="text-secondary"/>
+      <h5 class="text-info">Ваші ключі</h5>
+      <ul class="list-group list-group-flush mb-3">
+        {% for block in allocated_keys %}
+          <li class="list-group-item bg-dark text-white border-secondary">
+            <div class="fw-bold">{{ block.game }}</div>
+            {% if block.codes %}
+              <ul class="mt-2 mb-0 small">
+                {% for c in block.codes %}
+                  <li class="text-info">{{ c }}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="text-secondary small">Ключі відсутні.</div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="text-secondary small">Збережіть ці ключі у надійному місці. Вони також доступні в розділі "Кабінет" у вашому замовленні.</p>
+    {% endif %}
+
     <a href="{% url 'catalog' %}" class="btn btn-info">Повернутися до каталогу</a>
   </div>
 </div>
